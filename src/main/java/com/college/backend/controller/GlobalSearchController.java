@@ -29,17 +29,19 @@ public class GlobalSearchController {
         this.noteRepository = noteRepository;
     }
 
-    @GetMapping("/all")
-    public Map<String, Object> searchAll(@RequestParam String query) {
-        Map<String, Object> results = new HashMap<>();
-        
-        results.put("events", eventRepository.findByTitleContainingIgnoreCaseOrderByIdDesc(query));
-        results.put("notices", noticeRepository.findByTitleContainingIgnoreCase(query));
-        results.put("pyqs", pyqsRepository.findBySubjectContainingIgnoreCaseOrBranchContainingIgnoreCaseOrFileNameContainingIgnoreCase(query, query, query));
-        
-        // 4. Notes search results add karo
-        results.put("notes", noteRepository.findBySubjectNameContainingIgnoreCase(query));
-        
-        return results;
-    }
+    // Controller de andar @GetMapping("/all") de vich:
+@GetMapping("/all")
+public Map<String, Object> searchAll(@RequestParam String query) {
+    Map<String, Object> results = new HashMap<>();
+    
+    results.put("events", eventRepository.findByTitleContainingIgnoreCaseOrderByIdDesc(query));
+    results.put("notices", noticeRepository.findByTitleContainingIgnoreCase(query));
+
+    // ✅ EH LINE UPDATE KARO (searchGlobal Repository wala method call karo)
+    results.put("pyqs", pyqsRepository.searchGlobal(query)); 
+    
+    results.put("notes", noteRepository.findBySubjectNameContainingIgnoreCase(query));
+    
+    return results;
+}
 }

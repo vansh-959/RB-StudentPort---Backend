@@ -2,7 +2,7 @@ package com.college.backend.controller;
 
 import com.college.backend.entity.Note;
 import com.college.backend.repository.NoteRepository;
-import org.springframework.http.ResponseEntity; // 🟢 Import zaroori hai
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,21 +23,13 @@ public class NoteController {
         this.noteRepository = noteRepository;
     }
 
+    // 1. Saare Notes dekhan layi
     @GetMapping
     public List<Note> getAllNotes() {
         return noteRepository.findAll();
     }
 
-    @GetMapping("/{id}")
-public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
-    return noteRepository.findById(id)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
-}
-
-    // ==========================================
-    // 🟢 PEHLA KAMM: ADD THIS METHOD FOR DETAIL PAGE
-    // ==========================================
+    // 2. Kise ik Note di detail dekhan layi (ID de hisab naal)
     @GetMapping("/{id}")
     public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
         return noteRepository.findById(id)
@@ -45,8 +37,7 @@ public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-
-
+    // 3. Naye Notes upload karan layi
     @PostMapping("/upload")
     public Note uploadNote(
             @RequestParam("stream") String stream,
