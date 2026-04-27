@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: college-backend
+    env: java
+    region: oregon
+    plan: starter
+    repo: .
+    branch: main
+    buildCommand: ./mvnw clean package
+    startCommand: java -jar target/backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+      - key: SPRING_DATASOURCE_USERNAME
+      - key: SPRING_DATASOURCE_PASSWORD
