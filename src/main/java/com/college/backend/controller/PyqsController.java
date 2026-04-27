@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/pyqs")
 @CrossOrigin(origins = "*") // Eh zaruri hai taaki frontend backend naal gal kar sake
 public class PyqsController {
 
@@ -22,24 +23,24 @@ public class PyqsController {
     }
 
     // 1. Saare PYQs get karo
-    @GetMapping("/pyqs")
+    @GetMapping
     public List<Pyqs> getAllPyqs() {
         return pyqsRepository.findAllByOrderByIdDesc();
     }
 
     // 2. 🔍 SEARCH ENDPOINT (Nawa Code)
-    @GetMapping("/pyqs/search")
+    @GetMapping("/search")
     public List<Pyqs> searchPyqs(@RequestParam("query") String query) {
         return pyqsRepository.findBySubjectContainingIgnoreCase(query);
     }
 
-    @GetMapping("/pyqs/{id}")
+    @GetMapping("/{id}")
     public Pyqs getPyqsById(@PathVariable Long id) {
         return pyqsRepository.findById(id).orElse(null);
     }
 
     // 3. PYQs Add/Upload karo
-    @PostMapping("/pyqs")
+    @PostMapping
     public List<Pyqs> addPyqs(
             @RequestParam("stream") String stream,
             @RequestParam("branch") String branch,

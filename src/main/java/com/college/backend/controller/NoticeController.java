@@ -14,6 +14,7 @@ import java.util.List;
 //handles http requests
 
 @RestController  //handle APIs and return java objects as JSON
+@RequestMapping("/api/notices")
 @CrossOrigin(origins = "*")  //frontend and backend runs on different ports so it allows requests from any origin
 public class NoticeController {
 
@@ -26,18 +27,18 @@ public class NoticeController {
 //injection means you are not creating object using new , spring is created it for you
 
 
-    @GetMapping("/notices")//helps to fetch data from database and get the data
+    @GetMapping//helps to fetch data from database and get the data
     public List<Notice> getAllNotices() {
         return noticeRepository.findAllByOrderByIdDesc();
     }
 
 
-    @GetMapping("/notices/{id}")
+    @GetMapping("/{id}")
     public Notice getNoticeById(@PathVariable Long id) {
         return noticeRepository.findById(id).orElse(null);
     }
 
-    @PostMapping("/notices") //handles data uploading by running notice method
+    @PostMapping //handles data uploading by running notice method
     public Notice addNotice(
             @RequestParam("title") String title,
             @RequestParam("publicationDate") String publicationDate,

@@ -12,6 +12,7 @@ import java.util.List;
 
 
 @RestController
+@RequestMapping("/api/events")
 @CrossOrigin(origins = "*")
 public class EventController {
 
@@ -20,19 +21,19 @@ public class EventController {
         this.eventRepository = eventRepository;
     }
 
-    @GetMapping("/events")
+    @GetMapping
     public List<Event> getAllEvents() {
         return eventRepository.findAllByOrderByIdDesc();
     }
 
-    @GetMapping("/events/{id}")
+    @GetMapping("/{id}")
     public Event getEventById(@PathVariable Long id) {
         return eventRepository.findById(id).orElse(null);
     }
 
 
 
-    @PostMapping("/events")
+    @PostMapping
     public Event addEvent(
             @RequestParam("title") String title,
             @RequestParam("eventDate") String eventDate,
