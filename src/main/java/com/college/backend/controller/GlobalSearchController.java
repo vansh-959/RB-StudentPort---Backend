@@ -134,7 +134,9 @@ private boolean matchesAllTokens(List<Set<String>> tokenGroups, String... fields
             .map(this::normalizeText)
             .collect(Collectors.joining(" "));
 
-    return tokenGroups.stream().allMatch(group -> group.stream().anyMatch(haystack::contains));
+    return tokenGroups.stream().anyMatch(group -> 
+    group.stream().anyMatch(haystack::contains)
+);
 }
 
 private String normalizeText(String text) {

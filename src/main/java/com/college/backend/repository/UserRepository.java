@@ -10,7 +10,15 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByEmail(String email);
+
     boolean existsByEmail(String email);
-    Page<User> findByNameContainingIgnoreCaseAndBranchContainingIgnoreCase(String name, String branch, Pageable pageable);
+
+    // 🔥 ADD THIS LINE
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    Page<User> findByNameContainingIgnoreCaseAndBranchContainingIgnoreCase(
+            String name, String branch, Pageable pageable
+    );
 }
