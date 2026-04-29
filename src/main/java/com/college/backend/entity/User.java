@@ -22,9 +22,8 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    // 🔥 FIXED PHONE NUMBER
     @Column(nullable = false)
-    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
+    @Pattern(regexp = "^[5-9]\\d{9}$", message = "Invalid phone number")
     private String phoneNumber;
 
     @Column(nullable = false)

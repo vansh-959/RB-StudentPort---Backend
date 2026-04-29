@@ -28,7 +28,7 @@ public class AuthController {
 
         String phone = request.get("phoneNumber");
 
-        if (phone == null || !phone.matches("^[6-9]\\d{9}$")) {
+        if (phone == null || !phone.matches("^[5-9]\\d{9}$")) {
             response.put("success", false);
             response.put("message", "Invalid phone number");
             return ResponseEntity.badRequest().body(response);
@@ -105,6 +105,12 @@ public class AuthController {
         if (email == null || password == null || name == null || phoneNumber == null || branch == null) {
             response.put("success", false);
             response.put("message", "All fields are required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (!phoneNumber.matches("^[5-9]\\d{9}$")) {
+            response.put("success", false);
+            response.put("message", "Invalid phone number");
             return ResponseEntity.badRequest().body(response);
         }
 
