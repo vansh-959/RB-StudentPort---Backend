@@ -14,18 +14,17 @@ public class AuthController {
 
     private final UserRepository userRepository;
 
-    // 🔥 Temporary OTP store
+    // 🔥 Temporary OTP store (Original Logic)
     private final Map<String, String> otpStore = new HashMap<>();
 
     public AuthController(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    // 🔐 1. SEND OTP
+    // 🔐 1. SEND OTP (Original)
     @PostMapping("/send-otp")
     public ResponseEntity<Map<String, Object>> sendOtp(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
-
         String phone = request.get("phoneNumber");
 
         if (phone == null || !phone.matches("^[5-9]\\d{9}$")) {
@@ -42,7 +41,6 @@ public class AuthController {
 
         String otp = String.valueOf((int)(Math.random() * 900000) + 100000);
         otpStore.put(phone, otp);
-
         System.out.println("OTP for " + phone + " = " + otp);
 
         response.put("success", true);
@@ -50,18 +48,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // 🔐 2. VERIFY OTP + SIGNUP
+    // 🔐 2. VERIFY OTP + SIGNUP (Original)
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
-
         String phone = request.get("phoneNumber");
         String otp = request.get("otp");
-
-        String email = request.get("email");
-        String password = request.get("password");
-        String name = request.get("name");
-        String branch = request.get("branch");
 
         if (phone == null || otp == null || !otpStore.containsKey(phone) || !otpStore.get(phone).equals(otp)) {
             response.put("success", false);
@@ -69,21 +61,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        if (email == null || password == null || name == null || branch == null) {
-            response.put("success", false);
-            response.put("message", "All fields are required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        if (userRepository.existsByEmail(email)) {
-            response.put("success", false);
-            response.put("message", "Email already exists");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User user = new User(email, password, name, phone, branch);
+        User user = new User(
+            request.get("email"), 
+            request.get("password"), 
+            request.get("name"), 
+            phone, 
+            request.get("branch")
+        );
         userRepository.save(user);
-
         otpStore.remove(phone);
 
         response.put("success", true);
@@ -91,22 +76,11 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // 🔥 3. SIMPLE SIGNUP (FOR FRONTEND FIX)
+    // 🔥 3. SIMPLE SIGNUP (Original)
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
-
         String email = request.get("email");
-        String password = request.get("password");
-        String name = request.get("name");
-        String phoneNumber = request.get("phoneNumber");
-        String branch = request.get("branch");
-
-        if (email == null || password == null || name == null || phoneNumber == null || branch == null) {
-            response.put("success", false);
-            response.put("message", "All fields are required");
-            return ResponseEntity.badRequest().body(response);
-        }
 
         if (!phoneNumber.matches("^[5-9]\\d{9}$")) {
             response.put("success", false);
@@ -120,7 +94,13 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        User user = new User(email, password, name, phoneNumber, branch);
+        User user = new User(
+            email, 
+            request.get("password"), 
+            request.get("name"), 
+            request.get("phoneNumber"), 
+            request.get("branch")
+        );
         userRepository.save(user);
 
         response.put("success", true);
@@ -128,30 +108,19 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // 🔐 4. LOGIN
+    // 🔐 4. LOGIN (Original)
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
+        Optional<User> userOpt = userRepository.findByEmail(request.get("email"));
 
-        String email = request.get("email");
-        String password = request.get("password");
-
-        if (email == null || password == null) {
-            response.put("success", false);
-            response.put("message", "Email and password are required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        Optional<User> userOpt = userRepository.findByEmail(email);
-
-        if (userOpt.isEmpty() || !userOpt.get().getPassword().equals(password)) {
+        if (userOpt.isEmpty() || !userOpt.get().getPassword().equals(request.get("password"))) {
             response.put("success", false);
             response.put("message", "Invalid email or password");
             return ResponseEntity.badRequest().body(response);
         }
 
         User user = userOpt.get();
-
         response.put("success", true);
         response.put("message", "Login successful");
         response.put("user", Map.of(
@@ -160,7 +129,44 @@ public class AuthController {
                 "email", user.getEmail(),
                 "branch", user.getBranch()
         ));
-
         return ResponseEntity.ok(response);
+    }
+
+    // ⭐ 5. NEW: GET ALL USERS (Admin Panel Layi)
+    // Is naal "Unable to load users" wala error fix ho jayega
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, Object>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String department) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<User> allUsers = userRepository.findAll();
+            
+            // Search filter logic
+            List<User> filtered = allUsers.stream()
+                .filter(u -> (name == null || u.getName().toLowerCase().contains(name.toLowerCase())))
+                .filter(u -> (department == null || u.getBranch().toLowerCase().contains(department.toLowerCase())))
+                .toList();
+
+            int start = Math.min(page * size, filtered.size());
+            int end = Math.min(start + size, filtered.size());
+
+            response.put("success", true);
+            response.put("users", filtered.subList(start, end));
+            response.put("page", page);
+            response.put("totalPages", (int) Math.ceil((double) filtered.size() / size));
+            response.put("totalElements", filtered.size());
+            response.put("hasPrevious", page > 0);
+            response.put("hasNext", end < filtered.size());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }
