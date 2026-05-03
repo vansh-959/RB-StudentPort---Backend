@@ -52,20 +52,39 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
+        String email = request.get("email");
         String phone = request.get("phoneNumber");
         String otp = request.get("otp");
 
-        if (phone == null || otp == null || !otpStore.containsKey(phone) || !otpStore.get(phone).equals(otp)) {
+        if (email == null || email.isBlank() || phone == null || otp == null) {
+            response.put("success", false);
+            response.put("message", "Missing required verification data");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (!otpStore.containsKey(phone) || !otpStore.get(phone).equals(otp)) {
             response.put("success", false);
             response.put("message", "Invalid OTP");
             return ResponseEntity.badRequest().body(response);
         }
 
+        if (userRepository.existsByEmail(email)) {
+            response.put("success", false);
+            response.put("message", "Email already registered");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (userRepository.existsByPhoneNumber(phone)) {
+            response.put("success", false);
+            response.put("message", "Phone number already registered");
+            return ResponseEntity.badRequest().body(response);
+        }
+
         User user = new User(
-            request.get("email"), 
-            request.get("password"), 
-            request.get("name"), 
-            phone, 
+            email,
+            request.get("password"),
+            request.get("name"),
+            phone,
             request.get("branch")
         );
         userRepository.save(user);
@@ -76,15 +95,32 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // 🔥 3. SIMPLE SIGNUP (Original)
+    // 🔥 3. SIMPLE SIGNUP (Modified)
     @PostMapping("/signup")
     public ResponseEntity<Map<String, Object>> signup(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         String email = request.get("email");
+        String password = request.get("password");
+        String name = request.get("name");
+        String branch = request.get("branch");
+        String phoneNumber = request.get("phoneNumber");
 
-        if (!phoneNumber.matches("^[5-9]\\d{9}$")) {
+        if (email == null || !email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,}$")) {
             response.put("success", false);
-            response.put("message", "Invalid phone number");
+            response.put("message", "Invalid email address");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (password == null || password.length() < 6) {
+            response.put("success", false);
+            response.put("message", "Password must be at least 6 characters");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (name == null || name.isBlank() || branch == null || branch.isBlank() || phoneNumber == null
+                || !phoneNumber.matches("^[5-9]\\d{9}$")) {
+            response.put("success", false);
+            response.put("message", "Please provide valid name, branch, and phone number");
             return ResponseEntity.badRequest().body(response);
         }
 
@@ -94,12 +130,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
 
+        if (userRepository.existsByPhoneNumber(phoneNumber)) {
+            response.put("success", false);
+            response.put("message", "Phone number already exists");
+            return ResponseEntity.badRequest().body(response);
+        }
+
         User user = new User(
-            email, 
-            request.get("password"), 
-            request.get("name"), 
-            request.get("phoneNumber"), 
-            request.get("branch")
+            email,
+            password,
+            name,
+            phoneNumber,
+            branch
         );
         userRepository.save(user);
 

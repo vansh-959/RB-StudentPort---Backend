@@ -1,7 +1,7 @@
 package com.college.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern; // 👈 sirf ye add
+import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +22,7 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     @Pattern(regexp = "^[5-9]\\d{9}$", message = "Invalid phone number")
     private String phoneNumber;
 
@@ -65,4 +65,12 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
 }
+

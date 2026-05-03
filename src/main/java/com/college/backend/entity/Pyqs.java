@@ -35,6 +35,7 @@ public class Pyqs {
         this.branch = branch;
     }
 
+    @Column(name = "pyq_year")
     private Integer year;
 
     public Integer getYear() {

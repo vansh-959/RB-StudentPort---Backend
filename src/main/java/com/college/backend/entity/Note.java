@@ -14,6 +14,7 @@ public class Note {
     private String stream;      // 🟢 Added (Engineering, Management, etc.)
     private String branch;
     private int semester;
+    @Column(name = "note_year")
     private int year;           // 🟢 Added (2024, 2025, 2026 for Syllabus tracking)
     private String subjectName;
 
